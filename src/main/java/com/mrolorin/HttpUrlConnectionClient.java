@@ -24,12 +24,9 @@ public class HttpUrlConnectionClient implements HttpClient {
         wr.close();
 
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        String inputLine;
         StringBuilder response = new StringBuilder();
 
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
+        in.lines().forEach(response::append);
         in.close();
 
         return response.toString();

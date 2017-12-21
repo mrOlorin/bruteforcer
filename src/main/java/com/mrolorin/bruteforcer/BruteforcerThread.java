@@ -16,17 +16,12 @@ public class BruteforcerThread implements Callable<String> {
     public String call() {
         Thread current = Thread.currentThread();
         String password = null;
-        while (!current.isInterrupted()) {
-            password = this.passwordGenerator.getNext();
-            try {
-                boolean isSucess = this.tester.test(password);
-                if (isSucess) {
-                    break;
-                }
+        try {
+            while (!current.isInterrupted() && !this.tester.test(password = this.passwordGenerator.getNext())) {
                 System.out.println("Tried \"" + password + "\"");
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return password;
     }

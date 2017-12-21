@@ -16,24 +16,15 @@ public class Bruteforcer {
     }
 
     public String hack(int threadNumber) throws InterruptedException {
-        ExecutorService executor = Executors.newFixedThreadPool(threadNumber);
-        Collection<Callable<String>> solvers = new ArrayList<>();
-        for (int i = 0; i < threadNumber; i++) {
-            solvers.add(new BruteforcerThread(this.tester, this.passwordGenerator));
-        }
-        return this.solve(executor, solvers);
-    }
-
-    private String solve(ExecutorService e, Collection<Callable<String>> solvers) throws InterruptedException {
+        ExecutorService e = Executors.newFixedThreadPool(threadNumber);
         CompletionService<String> ecs = new ExecutorCompletionService<>(e);
-        int n = solvers.size();
-        List<Future<String>> futures = new ArrayList<>(n);
+        List<Future<String>> futures = new ArrayList<>(threadNumber);
         String result = null;
         try {
-            for (Callable<String> s : solvers) {
-                futures.add(ecs.submit(s));
+            for (int i = 0; i < threadNumber; i++) {
+                futures.add(ecs.submit(new BruteforcerThread(this.tester, this.passwordGenerator)));
             }
-            for (int i = 0; i < n; ++i) {
+            for (int i = 0; i < threadNumber; ++i) {
                 try {
                     String r = ecs.take().get();
                     if (r != null) {
@@ -44,9 +35,9 @@ public class Bruteforcer {
                 }
             }
         } finally {
-            for (Future<String> f : futures) {
+            futures.forEach((Future f) -> {
                 f.cancel(true);
-            }
+            });
             System.out.println("Shutting down..");
             e.shutdownNow();
         }
